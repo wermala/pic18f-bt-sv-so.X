@@ -18,12 +18,34 @@
 #pragma config LVP = OFF // Single Supply Enable bits off.
 
 /**
+ * Point d'entrée des interruptions.
+ */
+/*void low_priority interrupt interruptionsBassePriorite() {
+    char choix =0;
+    if (PIR1bits.TMR2IF) {
+        PIR1bits.TMR2IF = 0;
+        ADCON0bits.GO = 1;
+    }
+    
+    if (PIR1bits.ADIF) {
+        PIR1bits.ADIF = 0;
+        choix = ADRESH;
+    }
+}*/
+
+/**
 * Point d'entrée.
-* Configure le port A comme entrée, et le B comme sortie.
-* Puis copie la valeur lue du port A dans le port B.
+* Configure le port A comme entrée, et le C comme sortie.
+* Puis copie la valeur lue du port A irgendwo
 */
 void main()
 {
+   /* char sinus[] =
+    {
+    16, 21, 25, 28, 30, 31, 30,
+    28, 25, 21, 16, 11, 7, 4,
+    2, 1, 2, 4, 7, 11, 16
+    };*/
     char sinus[] =
     {
     16, 21, 25, 28, 30, 31, 30,
@@ -45,7 +67,6 @@ void main()
     ADCON2bits.ADFM = 0;    // Les 8 bits plus signifiants sur ADRESH.
     ADCON2bits.ACQT = 3; // Temps d'acquisition à 6 TAD.
     ADCON2bits.ADCS = 0; // À 1MHz, le TAD est à 2us.
-    ADCON0bits.GO = 1;
     
     TRISC = 0x00; // Tous les bits du port A comme sorties.
     while(1)
@@ -53,7 +74,6 @@ void main()
         for(n=0; n<20; n++)
         {
             ccpr = sinus[n];
-            //pr = ADRESH/8;
             for(tmr=0; tmr<pr; tmr++)
             {
                 if (tmr<ccpr)
