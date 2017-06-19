@@ -1,10 +1,11 @@
 /*
 * File: ports-io-pwm.c
 * Author: jmgonet
-*
+* Modified by: Alain Wermelinger
 * Created on February 15, 2014, 2:40 PM
 */
 #include <htc.h>
+#include "signal.h"
 
 /**
 * Bits de configuration:
@@ -48,11 +49,9 @@ static void hardwareInitialise() {
     // Temporisateur 2 
     T2CONbits.T2CKPS = 0;       // Pas de diviseur de fréquence.
     T2CONbits.TMR2ON = 1;       // Active le temporisateur 2    
-    T2CONbits.T2OUTPS = 0b1001; // Post division par 10
-    PR2 = 250;                  // Compte jusqu'à 250 (250*4us=1ms)
+    PR2 = 100;                  // Compte jusqu'à 100 (100*4us=400us)
     CCPTMRS0bits.C1TSEL = 00;           // CCP1 utilise TMR2
     CCP1CONbits.CCP1M = 0b00001111;     // PWM mode
-
 
     // Active les interruptions de haute et de basse priorité:
     RCONbits.IPEN = 1;
@@ -77,65 +76,12 @@ void low_priority interrupt interruptionsBassePriorite() {
     
     if (PIR1bits.TMR2IF) {
         PIR1bits.TMR2IF = 0;
-        if (TMR1<CCPR5L)
-        {
-            PORTC = 0;
-        }
-        else
-        {
-            PORTC = 4;
-        }
+        CCPR1L = echantillon();
     }
     
     if (PIR1bits.ADIF) {
         PIR1bits.ADIF = 0;
-        void PWM_gereSequence();
-    }
-}
-
-/**
-* Gère la séquence PWM
-*/
-void PWM_gereSequence()
-{
-    char triangle[] =
-    {
-    16, 19, 22, 25, 28, 31, 28,
-    25, 22, 19, 16, 13, 10, 7,
-    4, 1, 4, 7, 10, 13, 16
-    };
-     
-    char sinus[] =
-    {
-    16, 21, 25, 28, 30, 31, 30,
-    28, 25, 21, 16, 11, 7, 4,
-    2, 1, 2, 4, 7, 11, 16
-    };
-    
-    /*char carre[] =
-    {
-    16, 21, 25, 28, 30, 31, 30,
-    28, 25, 21, 16, 11, 7, 4,
-    2, 1, 2, 4, 7, 11, 16
-    };*/
-    
-    static char n = 0;
-    // Établit le rapport cyclique correspondant
-    // au numéro de séquence:
-    /*if(val_pot < 127)
-    {
-        CCPR5L = sinus[n];
-    }
-    else
-    {
-        CCPR5L = triangle[n];
-    }*/
-    
-    // Calcule le numéro de séquence suivant:
-    n++;
-    if (n > 20)
-    {
-        n = 0;
+        selectionneTableau(ADRESL>>6);
     }
 }
 
